@@ -10,6 +10,12 @@ class SuperseedrPrivate < Formula
     strategy :github_latest
   end
 
+  bottle do
+    root_url "https://github.com/Jagalite/homebrew-tap/releases/download/superseedr-private-1.0.15"
+    sha256 cellar: :any_skip_relocation, arm64_sequoia: "b03b2aff382e01f2aa314bab65569282d7e61aa8ddbce58f56dc684c1e60c5e5"
+    sha256 cellar: :any,                 x86_64_linux:  "e425905f47328e5cc117f638b5063c2ba20ee06d56489654d0e29607031fa7aa"
+  end
+
   depends_on "rust" => :build
 
   def install
