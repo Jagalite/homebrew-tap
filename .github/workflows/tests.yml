@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, macos-15-intel]
+        os: [macos-15]
         include:
           - os: ubuntu-latest
             container:
@@ -51,7 +51,18 @@ jobs:
 
       - run: brew test-bot --only-tap-syntax
       - run: brew test-bot --only-formulae
+        id: formulae
         if: github.event_name == 'pull_request'
+
+      - name: Reject skipped formula builds
+        if: github.event_name == 'pull_request'
+        env:
+          SKIPPED: ${{ steps.formulae.outputs.skipped_or_failed_formulae }}
+        run: |
+          if [[ -n "$SKIPPED" ]]; then
+            echo "::error::Formula builds were skipped or failed: $SKIPPED"
+            exit 1
+          fi
 
       - name: Upload bottles as artifact
         if: always() && github.event_name == 'pull_request'
