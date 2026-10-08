@@ -58,6 +58,18 @@ some existing dependencies and ran its automatic old-version cleanup during
 that initial tool install. Subsequent install commands disabled automatic
 cleanup. No source files or existing Superseedr edits were removed or rewritten.
 
+## Hosted validation findings during publication
+
+The original Intel macOS job skipped Superseedr because its Rust build dependency
+had no compatible bottle, while still returning success. Current Homebrew Rust
+metadata confirmed the missing Intel bottles. Intel macOS was removed from the
+advertised matrix, and CI now explicitly rejects skipped/failed formula builds.
+The supported bottle targets are Apple Silicon macOS and x86_64 Linux.
+
+The release-check workflow passed using only `GITHUB_TOKEN`, correctly identifying
+1.0.15 as current: [workflow run](https://github.com/Jagalite/homebrew-tap/actions/runs/37811269795).
+This validates discovery and the no-change path, not creation of a future update PR.
+
 ## Pending at the time of the local validation snapshot
 
 - No tap commits have been pushed, GitHub Actions jobs run, bottle assets uploaded,

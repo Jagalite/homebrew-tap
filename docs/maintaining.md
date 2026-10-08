@@ -3,11 +3,18 @@
 ## CI and bottles
 
 The workflows follow Homebrew's `brew tap-new` templates. Pull requests run
-`brew test-bot` on macOS 15 ARM64, macOS 15 Intel, and x86_64 Linux. It validates
+`brew test-bot` on macOS 15 ARM64 and x86_64 Linux. It validates
 tap syntax, builds changed formulae, runs their tests, and produces real
 Homebrew bottles and bottle JSON metadata. Pushes to `main` validate tap syntax;
 use a pull request for every new formula and source change so bottles are built.
-Workflow-only changes may correctly produce no bottle artifacts.
+Workflow-only changes may correctly produce no bottle artifacts. A separate
+check rejects any formula listed by test-bot as skipped or failed, since a
+successful test-bot exit alone can include skipped builds.
+
+Intel macOS is excluded: current Homebrew Rust has no Intel macOS bottle, so
+test-bot skips this package there. See [Homebrew's support policy](https://docs.brew.sh/Support-Tiers).
+Do not add a matrix target without verifying its build dependencies and actual
+bottle output.
 
 After every matrix job passes, review the PR and record its exact head SHA.
 **Do not merge the formula PR with GitHub's merge button first.** Publish using:

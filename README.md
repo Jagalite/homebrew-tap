@@ -27,9 +27,12 @@ or configuration simultaneously.
 
 Homebrew uses a matching published bottle when one exists. Otherwise it builds
 from the checksummed release source with Homebrew Rust and the Cargo lockfile.
-The CI bottle targets are macOS 15 Apple Silicon, macOS 15 Intel, and x86_64 Linux
+The CI bottle targets are macOS 15 Apple Silicon and x86_64 Linux
 in Homebrew's official Linux container. Other compatible hosts may build from
-source; these three targets are not a claim of testing on every OS version.
+source; these targets are not a claim of testing on every OS version.
+
+Intel macOS bottles are not provided: Homebrew no longer builds Intel macOS
+bottles for the Rust build dependency. Intel source builds are not verified.
 
 To explicitly build from source:
 
