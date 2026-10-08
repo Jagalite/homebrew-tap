@@ -9,7 +9,7 @@ CI and release checks discover formulae across the tap.
 
 ## Install
 
-Once the tap is published:
+Install from the public tap:
 
 ```sh
 brew install Jagalite/tap/superseedr-private
