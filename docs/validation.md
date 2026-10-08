@@ -2,8 +2,9 @@
 
 This records local testing before the first publication. The infrastructure is
 now published to `main`; rollout is tracked in [tap PR #1](https://github.com/Jagalite/homebrew-tap/pull/1)
-and [Superseedr PR #363](https://github.com/Jagalite/superseedr/pull/363).
-Use those PR checks for current hosted CI status. The local results below do not
+(the former [Superseedr notifier PR #363](https://github.com/Jagalite/superseedr/pull/363)
+was superseded by hourly polling without additional tokens).
+Use the tap PR checks for current hosted CI status. The local results below do not
 imply that either PR is merged or its bottles published.
 
 ## Verified locally
@@ -63,10 +64,12 @@ cleanup. No source files or existing Superseedr edits were removed or rewritten.
   or formula/bottle PRs published. Remote `brew install` is not yet available.
 - Intel macOS and Linux builds, the complete hosted CI matrix, release PR creation,
   the credentialed dispatch, and public bottle downloads remain unverified.
-- Both `TAP_UPDATE_TOKEN` in the tap and `HOMEBREW_TAP_TOKEN` in Superseedr are
-  absent. Credentials must be configured to activate the automation.
-- The notifier is an additional uncommitted file in the existing Superseedr
-  checkout. All 16 previously modified files there were left untouched.
+- The initial design required two personal tokens. It was replaced during
+  publication with hourly polling using `GITHUB_TOKEN` and human approval of
+  automated PR CI; no stored token secrets are now required.
+- The initial notifier was isolated in its own worktree/PR and then withdrawn
+  when hourly polling was selected. All 16 previously modified files in the
+  original Superseedr checkout were left untouched.
 - This smoke test does not establish live torrent-transfer behavior or network
   privacy properties. The no-default-features build is established by the build
   invocation and source feature definitions.

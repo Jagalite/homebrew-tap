@@ -30,23 +30,21 @@ jobs use Homebrew's default CPU baseline. Do not add `target-cpu=native`.
 
 ## Released-version automation
 
-`autobump.yml` checks every formula hourly (at minute 17 UTC), on manual dispatch,
-and on the `upstream-release` repository dispatch. `superseedr-private` explicitly
-uses `livecheck`'s `github_latest` strategy: only the latest published stable
-GitHub release is eligible, not arbitrary tags or prereleases. `brew bump`
-calculates the new archive checksum, removes stale bottle metadata, and opens a
-version PR. Existing current-version formulae are a no-op; Homebrew detects
-existing bump PRs. CI must pass before publishing the update and its bottles.
+`autobump.yml` checks every formula hourly (at minute 17 UTC) and on manual
+request. `superseedr-private` explicitly uses `livecheck`'s `github_latest`
+strategy: only the latest published stable GitHub release is eligible, not
+arbitrary tags or prereleases. `brew bump` calculates the new archive checksum,
+removes stale bottle metadata, and opens a version PR. Existing current-version
+formulae are a no-op; Homebrew detects existing bump PRs.
 
-The Superseedr integration is `.github/workflows/homebrew-tap.yml` in the
-Superseedr repository. It sends a dispatch after a release is published. It
-also listens for successful `Rust` workflow completions from pushes: the
-existing release workflow uses `GITHUB_TOKEN`, whose release event cannot
-start another workflow. The extra notification after a non-release build is
-harmless because the tap always checks published release metadata. No code or
-artifacts from that run are executed by the notification workflow.
+The workflow uses GitHub's automatic, short-lived `GITHUB_TOKEN`. GitHub puts
+CI triggered by its automated PRs into an approval-required state. Open the
+update PR and select **Approve workflows to run**, wait for all matrix jobs,
+then review and publish the tested head through `publish.yml`. Formula updates
+and bottle publication remain reviewed operations.
 
-The hourly poll recovers missed notifications and failed upstream workflows.
+No upstream notifier, cross-repository credential, or stored personal token is
+needed. Polling discovers new releases without changing their repositories.
 GitHub may delay scheduled runs or disable schedules on inactive public repos;
 monitor Actions and re-enable schedules if needed. Manual retry:
 
@@ -56,28 +54,24 @@ gh workflow run autobump.yml --repo Jagalite/homebrew-tap
 
 ## Credentials and repository settings
 
-Installation and public source downloads need **no credentials**.
+Neither maintainers nor users need a Homebrew account. Installation and public
+source downloads require **no credentials**. CI, formula updates, and publishing
+use the `GITHUB_TOKEN` that GitHub automatically provides for each Actions job;
+no repository secret needs to be created. Its permissions are restricted by the
+job's YAML. Bottles live in this repository's public GitHub Releases, not in a
+separate Homebrew publishing service.
 
-| Location | Secret | Permissions and purpose |
-| --- | --- | --- |
-| `Jagalite/homebrew-tap` | `TAP_UPDATE_TOKEN` | Fine-grained PAT restricted to this tap: Contents read/write and Pull requests read/write. Its owner needs write access. Creates update branches/PRs that trigger CI. |
-| `Jagalite/superseedr` | `HOMEBREW_TAP_TOKEN` | Fine-grained PAT restricted to `Jagalite/homebrew-tap`: Contents read/write, to send repository dispatch events. |
-| Tap CI and publishing | `GITHUB_TOKEN` | Automatically provided by Actions; job permissions are declared in YAML. No manual secret required. |
+In the tap's **Settings > Actions > General > Workflow permissions**, enable
+**Allow GitHub Actions to create and approve pull requests**. The default token
+permissions can remain read-only: the autobump job explicitly requests Contents
+and Pull requests write permissions. The workflow creates PRs; it does not
+approve or merge them. GitHub requires a human to approve their CI runs.
 
-Use separate narrowly scoped, expiring tokens. Enter them through GitHub's
-Actions secrets settings or `gh secret set`'s interactive prompt; never put them
-in formulae, URLs, workflow files, or commit history. Do not substitute the tap's
-`GITHUB_TOKEN` for `TAP_UPDATE_TOKEN`: PRs created with it do not automatically
-trigger the required PR CI. A GitHub App installation token can replace the PAT
-if an installation-token generation step is added.
+The publishing job explicitly requests permission to write contents, pull
+requests and attestations, and to obtain an OIDC token for build provenance.
+The OIDC token is for attestations, not a separate registry login or a replacement
+for repository permissions.
 
-```sh
-gh secret set TAP_UPDATE_TOKEN --repo Jagalite/homebrew-tap
-gh secret set HOMEBREW_TAP_TOKEN --repo Jagalite/superseedr
-```
-
-Enable Actions in both repositories. Allow the tap's publishing workflow to
-write contents, pull requests and attestations, and request an OIDC token.
 Branch protections/rulesets must permit the reviewed publishing workflow to
 push its bottle commit to `main`; do not bypass protections ad hoc. If policy
 forbids this, adapt the publication flow before attempting a release.
@@ -85,7 +79,9 @@ forbids this, adapt the publication flow before attempting a release.
 For manual `gh` operations, authenticate with repository write access and
 Actions write access for workflow dispatch. Creating/updating workflow files
 with a token additionally requires Workflows write (or the classic `workflow`
-scope). CI never needs access to a private Superseedr repository.
+scope); an existing authorized SSH key also supports pushing workflow commits.
+These are maintainer GitHub credentials, not credentials supplied to Homebrew
+users or stored in Actions secrets.
 
 ## First publication from an empty repository
 
@@ -93,9 +89,8 @@ scope). CI never needs access to a private Superseedr repository.
    a default branch and makes the publishing workflow available.
 2. Open a PR adding `Formula/superseedr-private.rb` from this checkout. Keeping
    the first formula in a PR ensures `brew test-bot` builds its initial bottles.
-3. Configure the two secrets above and publish the Superseedr notification
-   workflow to that repository's default branch. The hourly poll works without
-   the upstream notifier once `TAP_UPDATE_TOKEN` is configured.
+3. Enable the Actions PR-creation setting described above. No secrets or
+   changes to the Superseedr repository are needed.
 4. Wait for the formula PR's entire matrix, review its head SHA, and run
    `publish.yml` as described above. Verify a fresh remote bottle installation
    before announcing remote availability.
@@ -109,8 +104,8 @@ that reflects that project's release policy and list it in the README table.
 Use a distinct executable name when variants would otherwise collide.
 
 No CI matrix or autobump allowlist needs editing: both discover tap formulae.
-An upstream may send the same `upstream-release` dispatch after publishing; the
-tap checks its own formula metadata instead of trusting payload URLs or code.
+Hourly polling uses each formula's release metadata; no upstream repository
+workflow or notification hook is needed.
 
 Local checks, from an installed development tap:
 
