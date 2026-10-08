@@ -1,5 +1,11 @@
 # Validation: 2026-10-08
 
+This records local testing before the first publication. The infrastructure is
+now published to `main`; rollout is tracked in [tap PR #1](https://github.com/Jagalite/homebrew-tap/pull/1)
+and [Superseedr PR #363](https://github.com/Jagalite/superseedr/pull/363).
+Use those PR checks for current hosted CI status. The local results below do not
+imply that either PR is merged or its bottles published.
+
 ## Verified locally
 
 Host: ARM64 macOS 26.5.2, Homebrew 7.0.4, Homebrew Rust 1.99.0.
@@ -51,7 +57,7 @@ some existing dependencies and ran its automatic old-version cleanup during
 that initial tool install. Subsequent install commands disabled automatic
 cleanup. No source files or existing Superseedr edits were removed or rewritten.
 
-## Not yet verified or activated
+## Pending at the time of the local validation snapshot
 
 - No tap commits have been pushed, GitHub Actions jobs run, bottle assets uploaded,
   or formula/bottle PRs published. Remote `brew install` is not yet available.
